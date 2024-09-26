@@ -1,0 +1,22 @@
+DEFINE DATA LOCAL
+1 #ORDER-ID (N8)
+1 #SHIPPING-STATUS (A20)
+1 #SERVICE-RESPONSE (A100)
+END-DEFINE
+
+* Shipping an order
+INPUT 'Enter Order ID to ship:' #ORDER-ID
+
+* Service call to shipping system
+CALLNAT 'SHIP-ORDER' #ORDER-ID #SHIPPING-STATUS #SERVICE-RESPONSE
+
+DECIDE ON FIRST VALUE OF #SHIPPING-STATUS
+    VALUE 'SUCCESS'
+        WRITE 'Order shipped successfully.'
+    VALUE 'FAILED'
+        WRITE 'Order shipping failed. Reason:' #SERVICE-RESPONSE
+    NONE VALUE
+        WRITE 'Unknown shipping status.'
+END-DECIDE
+
+END

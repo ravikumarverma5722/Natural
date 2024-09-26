@@ -1,0 +1,45 @@
+DEFINE DATA LOCAL
+1 #ORDER-ID (N8)
+1 #CUSTOMER-ID (N8)
+1 #PRODUCT-ID (N8)
+1 #QUANTITY (N4)
+1 #UNIT-PRICE (N6.2)
+1 #TOTAL-AMOUNT (N10.2)
+1 #INVENTORY-QUANTITY (N4)
+1 #DB-RESPONSE (N4)
+END-DEFINE
+
+* Processing a new order
+INPUT 'Enter Order ID:' #ORDER-ID
+INPUT 'Enter Customer ID:' #CUSTOMER-ID
+INPUT 'Enter Product ID:' #PRODUCT-ID
+INPUT 'Enter Quantity:' #QUANTITY
+
+* Check inventory
+FIND INVENTORY WITH PRODUCT-ID = #PRODUCT-ID
+    IF INVENTORY-QUANTITY LT #QUANTITY
+        WRITE 'Insufficient inventory.'
+    ELSE
+        * Calculate total amount
+        #UNIT-PRICE := INVENTORY-UNIT-PRICE
+        #TOTAL-AMOUNT := #QUANTITY * #UNIT-PRICE
+
+        * Store order details
+        STORE ORDER
+            ORDER-ID = #ORDER-ID
+            CUSTOMER-ID = #CUSTOMER-ID
+            PRODUCT-ID = #PRODUCT-ID
+            QUANTITY = #QUANTITY
+            TOTAL-AMOUNT = #TOTAL-AMOUNT
+        END-STORE
+
+        * Update inventory
+        UPDATE INVENTORY
+            INVENTORY-QUANTITY := INVENTORY-QUANTITY - #QUANTITY
+        END-UPDATE
+
+        WRITE 'Order processed successfully. Total Amount:' #TOTAL-AMOUNT
+    END-IF
+END-FIND
+
+END

@@ -1,0 +1,45 @@
+DEFINE DATA PARAMETER
+1 #ORDER-ID (A10)
+1 #CUSTOMER-ID (A10)
+1 #PRODUCT-ID (A10)
+1 #QUANTITY (N5)
+1 #STATUS (A20)
+LOCAL
+1 #STOCK-LEVEL (N5)
+END-DEFINE
+
+* Check if the product is in stock
+FIND INVENTORY WITH PRODUCT-ID = #PRODUCT-ID
+  IF NO RECORDS FOUND
+    MOVE 'Product not found' TO #STATUS
+    ESCAPE ROUTINE
+  END-NOREC
+
+  * Retrieve the stock level
+  MOVE INVENTORY.STOCK-LEVEL TO #STOCK-LEVEL
+
+  * Check if there is enough stock
+  IF #STOCK-LEVEL < #QUANTITY
+    MOVE 'Insufficient stock' TO #STATUS
+    ESCAPE ROUTINE
+  END-IF
+
+  * Update the stock level
+  UPDATE (INVENTORY)
+    INVENTORY.STOCK-LEVEL := INVENTORY.STOCK-LEVEL - #QUANTITY
+  END-UPDATE
+
+END-FIND
+
+* Store the order in the ORDERS file
+STORE ORDERS
+  ORDER-ID := #ORDER-ID
+  CUSTOMER-ID := #CUSTOMER-ID
+  PRODUCT-ID := #PRODUCT-ID
+  QUANTITY := #QUANTITY
+END-STORE
+
+* Set the status to indicate success
+MOVE 'Order shipped' TO #STATUS
+
+END
